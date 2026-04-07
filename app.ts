@@ -1,6 +1,8 @@
 import express from "express";
+import cors from "cors";
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 // Mock Data Store
@@ -95,8 +97,15 @@ let loanApplications = [
   }
 ];
 
-// API Routes
-app.get("/api/dashboard/borrower", (req, res) => {
+// Create a Router for all API endpoints
+const api = express.Router();
+
+// Define all routes WITHOUT the /api prefix
+api.get("/health", (req, res) => {
+  res.json({ status: "healthy", timestamp: new Date().toISOString(), node_env: process.env.NODE_ENV });
+});
+
+api.get("/dashboard/borrower", (req, res) => {
   res.json({
     total_borrowed: 2500000,
     total_approved: 2500000,
@@ -108,7 +117,7 @@ app.get("/api/dashboard/borrower", (req, res) => {
   });
 });
 
-app.get("/api/dashboard/lender", (req, res) => {
+api.get("/dashboard/lender", (req, res) => {
   res.json({
     offer_count: offers.length,
     accepted_offer_count: offers.length,
@@ -118,7 +127,7 @@ app.get("/api/dashboard/lender", (req, res) => {
   });
 });
 
-app.get("/api/loans", (req, res) => {
+api.get("/loans", (req, res) => {
   const { status } = req.query;
   if (status) {
     return res.json(loanApplications.filter(l => l.status === status));
@@ -126,15 +135,15 @@ app.get("/api/loans", (req, res) => {
   res.json(loanApplications);
 });
 
-app.get("/api/esg/portfolio-avg", (req, res) => {
+api.get("/esg/portfolio-avg", (req, res) => {
   res.json({ score: 865 });
 });
 
-app.get("/api/esg/:loanId", (req, res) => {
+api.get("/esg/:loanId", (req, res) => {
   res.json({ score: Math.floor(Math.random() * 200) + 700 });
 });
 
-app.post("/api/offers", (req, res) => {
+api.post("/offers", (req, res) => {
   const newOffer = {
     id: `offer_${Math.random().toString(36).substring(7)}`,
     ...req.body,
@@ -147,7 +156,7 @@ app.post("/api/offers", (req, res) => {
   res.json(newOffer);
 });
 
-app.patch("/api/offers/:offerId/accept", (req, res) => {
+api.patch("/offers/:offerId/accept", (req, res) => {
   const { offerId } = req.params;
   const offer = offers.find((o) => o.id === offerId);
   if (offer) {
@@ -166,7 +175,7 @@ app.patch("/api/offers/:offerId/accept", (req, res) => {
   }
 });
 
-app.put("/api/esg/metrics", (req, res) => {
+api.put("/esg/metrics", (req, res) => {
   esgMetrics = { ...esgMetrics, ...req.body };
   auditLogs.unshift({
     id: Math.random().toString(36).substring(7),
@@ -179,20 +188,20 @@ app.put("/api/esg/metrics", (req, res) => {
   res.json({ message: "ESG metrics updated", metrics: esgMetrics });
 });
 
-app.get("/api/profile/me", (req, res) => {
+api.get("/profile/me", (req, res) => {
   res.json(userProfile);
 });
 
-app.put("/api/profile/me", (req, res) => {
+api.put("/profile/me", (req, res) => {
   userProfile = { ...userProfile, ...req.body };
   res.json({ message: "Profile updated", profile: userProfile });
 });
 
-app.post("/api/profile/request-verification", (req, res) => {
+api.post("/profile/request-verification", (req, res) => {
   res.json({ message: "Verification request submitted" });
 });
 
-app.get("/api/receipts/:transactionId", (req, res) => {
+api.get("/receipts/:transactionId", (req, res) => {
   res.json({
     transactionId: req.params.transactionId,
     amount: 5000,
@@ -202,7 +211,7 @@ app.get("/api/receipts/:transactionId", (req, res) => {
   });
 });
 
-app.get("/api/portfolio/analytics", (req, res) => {
+api.get("/portfolio/analytics", (req, res) => {
   res.json({
     total_invested: offers.reduce((sum, o) => sum + o.offered_amount, 0),
     total_returns: 525000,
@@ -216,7 +225,7 @@ app.get("/api/portfolio/analytics", (req, res) => {
   });
 });
 
-app.get("/api/lenders/smes", (req, res) => {
+api.get("/lenders/smes", (req, res) => {
   res.json([
     {
       id: "sme_1",
@@ -237,7 +246,7 @@ app.get("/api/lenders/smes", (req, res) => {
   ]);
 });
 
-app.get("/api/repayments/schedule", (req, res) => {
+api.get("/repayments/schedule", (req, res) => {
   res.json([
     { id: "tr_1", date: "2026-03-01T10:00:00Z", amount: 25000, status: "PAID", type: "ECS Auto-debit" },
     { id: "tr_2", date: "2026-04-01T10:00:00Z", amount: 25000, status: "PAID", type: "ECS Auto-debit" },
@@ -245,8 +254,12 @@ app.get("/api/repayments/schedule", (req, res) => {
   ]);
 });
 
-app.get("/api/audit-logs", (req, res) => {
+api.get("/audit-logs", (req, res) => {
   res.json(auditLogs);
 });
+
+// Dual-mounting to ensure Vercel sees the routes regardless of prefix stripping
+app.use("/api", api);
+app.use("/", api); // Fallback for Vercel's routing behavior
 
 export default app;
