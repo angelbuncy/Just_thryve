@@ -1,5 +1,4 @@
 <div align="center">
-  <img width="1200" height="475" alt="...JUST THRYVE" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
   <h1>JUST THRYVE — OCEN-based Green Business Lending Platform</h1>
   <p><strong>A production-ready full-stack fintech platform built with FastAPI, PostgreSQL, XGBoost ML, and Account Aggregator (AA) consent simulation.</strong></p>
   <p>Designed for green businesses in renewable energy, sustainable agriculture, and eco-commerce.</p>
@@ -7,7 +6,7 @@
 
 <hr />
 
-## 🚀 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 | :--- | :--- |
@@ -24,7 +23,7 @@
 
 <hr />
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 .
@@ -68,7 +67,7 @@
 
 <hr />
 
-## ⚡ Quick Start
+## Quick Start
 
 ### 1. Clone & install dependencies
 ```bash
@@ -101,7 +100,7 @@ API docs available at: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 <hr />
 
-## 📊 Database Schema
+## Database Schema
 
 | Table | Description |
 | :--- | :--- |
@@ -116,7 +115,7 @@ API docs available at: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 <hr />
 
-## 🛠 Core API Endpoints
+## Core API Endpoints
 
 ### Auth
 | Method | Path | Description |
@@ -153,7 +152,7 @@ API docs available at: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 <hr />
 
-## 🧠 ML Underwriting Engine
+## ML Underwriting Engine
 
 The XGBoost model uses 10 features across GST revenue, ESG metrics, and loan parameters to produce a 3-class decision:
 
@@ -167,7 +166,7 @@ SHAP values provide per-feature attribution for every decision, stored in `ml_au
 
 <hr />
 
-## 💵 EMI Calculation
+## EMI Calculation
 
 Uses the standard reducing-balance formula:
 
@@ -177,7 +176,7 @@ where **r** = monthly rate and **n** = tenure in months. Full amortization sched
 
 <hr />
 
-## 🛡 Security
+## Security
 
 - Passwords hashed with **bcrypt**
 - All protected endpoints use **Bearer JWT tokens**
