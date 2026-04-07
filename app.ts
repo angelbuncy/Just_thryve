@@ -5,10 +5,11 @@ app.use(express.json());
 
 // Mock Data Store
 let esgMetrics = {
-  renewableEnergyPercent: 0,
-  carbonIntensity: 0,
-  wasteRecycledPercent: 0,
-  socialImpactScore: 0,
+  renewableEnergyPercent: 82,
+  carbonIntensity: 14,
+  wasteRecycledPercent: 65,
+  socialImpactScore: 88,
+  complianceScore: 94,
 };
 
 let userProfile = {
@@ -17,7 +18,7 @@ let userProfile = {
   email: "nathalaangelina@gmail.com",
   phone: "+91 98765 43210",
   location: "Bangalore, India",
-  role: "BORROWER", // or "LENDER"
+  role: "LENDER", // Defaulting to LENDER for the demo
   verified: true,
 };
 
@@ -27,52 +28,57 @@ let auditLogs = [
     event: "Loan Application Submitted",
     timestamp: new Date().toISOString(),
     details: "Application for ₹10,00,000 submitted by Nathala Eco Solutions.",
-    hash: "0x7d2f...e4a1",
-    prevHash: "0x0000...0000",
+    hash: "0x7d2f4a1e9c8b",
+    prevHash: "0x000000000000",
   },
 ];
 
 let offers = [
   {
     id: "offer_1",
-    lenderName: "HDFC Bank",
-    lenderLogo: "https://picsum.photos/seed/hdfc/100/100",
-    interestRate: 9.5,
-    creditLimit: 1000000,
-    tenureMonths: 24,
-    esgAdjustment: -0.5,
-    status: "PENDING",
+    loan_id: "loan_7d2f4a",
+    business_name: "Eco-Friendly Packaging",
+    offered_amount: 1000000,
+    interest_rate: 9.5,
+    tenure_months: 24,
+    status: "ACTIVE",
+    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+    risk_score: 87,
   },
   {
     id: "offer_2",
-    lenderName: "ICICI Bank",
-    lenderLogo: "https://picsum.photos/seed/icici/100/100",
-    interestRate: 10.2,
-    creditLimit: 1500000,
-    tenureMonths: 36,
-    esgAdjustment: -0.3,
-    status: "PENDING",
+    loan_id: "loan_8e3g5b",
+    business_name: "Solar Grid Solutions",
+    offered_amount: 1500000,
+    interest_rate: 10.2,
+    tenure_months: 36,
+    status: "ACTIVE",
+    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+    risk_score: 92,
   },
 ];
 
 // API Routes
 app.get("/api/dashboard/borrower", (req, res) => {
   res.json({
-    profile: userProfile,
-    esg: esgMetrics,
-    offers: offers,
-    repayments: [],
-    opportunities: [],
+    total_borrowed: 2500000,
+    outstanding_balance: 2150000,
+    next_emi_date: "2026-05-01T10:00:00Z",
+    next_emi_amount: 25000,
+    loans: [
+      { id: "loan1", amount: 1000000, status: "funded" },
+      { id: "loan2", amount: 1500000, status: "approved" },
+    ],
   });
 });
 
 app.get("/api/dashboard/lender", (req, res) => {
   res.json({
-    profile: userProfile,
-    portfolio_value: 5000000,
-    active_loans: 12,
-    avg_yield: 10.5,
-    offers: [],
+    offer_count: offers.length,
+    accepted_offer_count: offers.length,
+    portfolio_value: offers.reduce((sum, o) => sum + o.offered_amount, 0),
+    average_interest_rate: 9.85,
+    offers: offers,
   });
 });
 
@@ -85,7 +91,7 @@ app.patch("/api/offers/:offerId/accept", (req, res) => {
       id: Math.random().toString(36).substring(7),
       event: "Offer Accepted",
       timestamp: new Date().toISOString(),
-      details: `Offer from ${offer.lenderName} for ₹${offer.creditLimit} accepted.`,
+      details: `Offer for ₹${offer.offered_amount} accepted for ${offer.business_name}.`,
       hash: "0x" + Math.random().toString(16).substring(2, 10),
       prevHash: auditLogs[0]?.hash || "0x0000",
     });
@@ -133,7 +139,7 @@ app.get("/api/receipts/:transactionId", (req, res) => {
 
 app.get("/api/portfolio/analytics", (req, res) => {
   res.json({
-    total_invested: 5000000,
+    total_invested: offers.reduce((sum, o) => sum + o.offered_amount, 0),
     total_returns: 525000,
     avg_esg_score: 845,
     sector_distribution: [
