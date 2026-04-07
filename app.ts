@@ -18,19 +18,27 @@ let userProfile = {
   email: "nathalaangelina@gmail.com",
   phone: "+91 98765 43210",
   location: "Bangalore, India",
-  role: "LENDER", // Defaulting to LENDER for the demo
+  role: "LENDER", 
   verified: true,
 };
 
 let auditLogs = [
   {
-    id: "1",
+    id: "log_1",
     event: "Loan Application Submitted",
-    timestamp: new Date().toISOString(),
+    timestamp: new Date(Date.now() - 3600000 * 24 * 2).toISOString(),
     details: "Application for ₹10,00,000 submitted by Nathala Eco Solutions.",
     hash: "0x7d2f4a1e9c8b",
     prevHash: "0x000000000000",
   },
+  {
+    id: "log_2",
+    event: "ESG Data Verified",
+    timestamp: new Date(Date.now() - 3600000 * 24 * 1).toISOString(),
+    details: "ESG metrics for Nathala Eco Solutions verified via GreenFlow Oracle.",
+    hash: "0x8e3g5b2h1j4k",
+    prevHash: "0x7d2f4a1e9c8b",
+  }
 ];
 
 let offers = [
@@ -43,7 +51,7 @@ let offers = [
     tenure_months: 24,
     status: "ACTIVE",
     created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    risk_score: 87,
+    risk_score: 820,
   },
   {
     id: "offer_2",
@@ -54,21 +62,49 @@ let offers = [
     tenure_months: 36,
     status: "ACTIVE",
     created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    risk_score: 92,
+    risk_score: 895,
   },
+];
+
+let loanApplications = [
+  {
+    id: "loan_7d2f4a",
+    borrower_id: "u_borrower1",
+    amount: 1000000,
+    purpose: "Solar Panel Installation",
+    status: "funded",
+    created_at: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000).toISOString(),
+    business_profile: {
+      business_name: "Eco-Friendly Packaging",
+      sector: "Manufacturing",
+    },
+    risk_score: 820,
+  },
+  {
+    id: "loan_abc123",
+    borrower_id: "u_borrower2",
+    amount: 500000,
+    purpose: "Sustainable Agriculture Equipment",
+    status: "submitted",
+    created_at: new Date().toISOString(),
+    business_profile: {
+      business_name: "Green Farm Tech",
+      sector: "Agriculture",
+    },
+    risk_score: 745,
+  }
 ];
 
 // API Routes
 app.get("/api/dashboard/borrower", (req, res) => {
   res.json({
     total_borrowed: 2500000,
+    total_approved: 2500000,
+    total_repaid: 350000,
     outstanding_balance: 2150000,
     next_emi_date: "2026-05-01T10:00:00Z",
     next_emi_amount: 25000,
-    loans: [
-      { id: "loan1", amount: 1000000, status: "funded" },
-      { id: "loan2", amount: 1500000, status: "approved" },
-    ],
+    loans: loanApplications.filter(l => l.borrower_id === "u_borrower1"),
   });
 });
 
@@ -80,6 +116,35 @@ app.get("/api/dashboard/lender", (req, res) => {
     average_interest_rate: 9.85,
     offers: offers,
   });
+});
+
+app.get("/api/loans", (req, res) => {
+  const { status } = req.query;
+  if (status) {
+    return res.json(loanApplications.filter(l => l.status === status));
+  }
+  res.json(loanApplications);
+});
+
+app.get("/api/esg/portfolio-avg", (req, res) => {
+  res.json({ score: 865 });
+});
+
+app.get("/api/esg/:loanId", (req, res) => {
+  res.json({ score: Math.floor(Math.random() * 200) + 700 });
+});
+
+app.post("/api/offers", (req, res) => {
+  const newOffer = {
+    id: `offer_${Math.random().toString(36).substring(7)}`,
+    ...req.body,
+    status: "PENDING",
+    created_at: new Date().toISOString(),
+    business_name: "New SME Applicant",
+    risk_score: 750
+  };
+  offers.push(newOffer);
+  res.json(newOffer);
 });
 
 app.patch("/api/offers/:offerId/accept", (req, res) => {
